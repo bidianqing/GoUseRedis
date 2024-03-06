@@ -26,6 +26,11 @@ func main() {
 
 	name := Get("name")
 	fmt.Println(name)
+
+	Hset("user:1", map[string]string{
+		"name": "bidianqing",
+		"age":  "22",
+	})
 }
 
 func Set(key string, value string, duration time.Duration) {
@@ -42,4 +47,13 @@ func Get(key string) string {
 	}
 
 	return name
+}
+
+func Hset(key string, fieldValues map[string]string) {
+	fieldValue := client.B().Hset().Key(key).FieldValue()
+	for field, value := range fieldValues {
+		fieldValue.FieldValue(field, value)
+	}
+
+	client.Do(ctx, fieldValue.Build())
 }
