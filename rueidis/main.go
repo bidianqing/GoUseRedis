@@ -22,7 +22,7 @@ func main() {
 	}
 	defer client.Close()
 
-	Set("name", "bidianqing", time.Minute*2)
+	Set("name", "bidianqing", time.Second*30)
 
 	name := Get("name")
 	fmt.Println(name)
@@ -31,6 +31,8 @@ func main() {
 		"name": "bidianqing",
 		"age":  "22",
 	})
+
+	Expire("user:1", time.Second*30)
 }
 
 func Set(key string, value string, duration time.Duration) {
@@ -56,4 +58,8 @@ func Hset(key string, fieldValues map[string]string) {
 	}
 
 	client.Do(ctx, fieldValue.Build())
+}
+
+func Expire(key string, duration time.Duration) {
+	client.Do(ctx, client.B().Expire().Key(key).Seconds(int64(duration.Seconds())).Build())
 }
