@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/redis/rueidis"
@@ -21,24 +20,13 @@ func main() {
 		panic(err)
 	}
 	defer client.Close()
-
-	Set("name", "bidianqing", time.Second*30)
-
-	name := Get("name")
-	fmt.Println(name)
-
-	Hset("user:1", map[string]string{
-		"name": "bidianqing",
-		"age":  "22",
-	})
-
-	Expire("user:1", time.Second*30)
 }
 
-func Set(key string, value string, duration time.Duration) {
-	err = client.Do(ctx, client.B().Set().Key(key).Value(value).Ex(duration).Build()).Error()
-	if err != nil {
-		panic(err)
+func Set(key string, value string, expiration time.Duration) {
+	if expiration > 0 {
+		client.Do(ctx, client.B().Set().Key(key).Value(value).Ex(expiration).Build())
+	} else {
+		client.Do(ctx, client.B().Set().Key(key).Value(value).Build())
 	}
 }
 
@@ -51,15 +39,16 @@ func Get(key string) string {
 	return name
 }
 
-func Hset(key string, fieldValues map[string]string) {
-	fieldValue := client.B().Hset().Key(key).FieldValue()
-	for field, value := range fieldValues {
-		fieldValue.FieldValue(field, value)
-	}
-
-	client.Do(ctx, fieldValue.Build())
+func Expire(key string, expiration time.Duration) {
+	client.Do(ctx, client.B().Expire().Key(key).Seconds(int64(expiration.Seconds())).Build())
 }
 
-func Expire(key string, duration time.Duration) {
-	client.Do(ctx, client.B().Expire().Key(key).Seconds(int64(duration.Seconds())).Build())
+func Incr(key string) int64 {
+	id, _ := client.Do(ctx, client.B().Incr().Key(key).Build()).ToInt64()
+
+	return id
+}
+
+func Del(key ...string) {
+	client.Do(ctx, client.B().Del().Key(key...).Build())
 }
