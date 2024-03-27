@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -17,6 +18,9 @@ func main() {
 		DB:       0,  // use default DB
 	})
 	defer client.Close()
+
+	val := HGetAll("tom")
+	fmt.Println(val)
 }
 
 func Set(key string, value string, expiration time.Duration) {
@@ -39,4 +43,13 @@ func Incr(key string) int64 {
 
 func Del(key ...string) {
 	client.Del(ctx, key...)
+}
+
+func HSet(key string, fieldValues map[string]string) {
+	client.HSet(ctx, key, fieldValues)
+}
+
+func HGetAll(key string) map[string]string {
+	val, _ := client.HGetAll(ctx, key).Result()
+	return val
 }
